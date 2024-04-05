@@ -1,12 +1,15 @@
 import express, { Express, Request, Response } from "express";
 import { blogsGetAll } from "./blogs";
 import { env } from "./env";
+import { displayLatestGithubCommit } from "./github/octokit";
+import { wrapHTML } from "./utils";
 
 const app: Express = express();
 const port = env.PORT;
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello, world!");
+app.get("/", async (req: Request, res: Response) => {
+  const commitHTML = await displayLatestGithubCommit();
+  res.send(wrapHTML(commitHTML));
 });
 
 app.get("/blogs", async (req: Request, res: Response) => {
