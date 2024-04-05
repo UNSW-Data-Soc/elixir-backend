@@ -1,7 +1,3 @@
-"build": "npx tsc",
-"start": "node dist/index.js",
-"dev": "nodemon src/index.ts"
-
 # elixir-backend
 
 A backend to manage DataSoc's elixir db.
