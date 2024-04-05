@@ -1,5 +1,7 @@
 .env
 
+dist
+
 # npm
 node_modules
 *.log
