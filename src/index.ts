@@ -3,6 +3,8 @@ import bodyParser from "body-parser";
 
 import session from "express-session";
 
+import cors from "cors";
+
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 
@@ -24,6 +26,8 @@ declare module "express-session" {
 
 const app: Express = express();
 const port = env.PORT;
+
+app.use(cors());
 
 app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // parse application/json
