@@ -1,6 +1,10 @@
 import express, { Express, NextFunction, Request, Response } from "express";
 import bodyParser from "body-parser";
 
+import session from "express-session";
+
+import cors from "cors";
+
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 
@@ -9,15 +13,38 @@ import { env } from "./env";
 import { wrapHTML } from "./utils";
 import HTTPError, { globalErrorHandler } from "./error";
 
-import { login, logout } from "./auth";
+import { getUserFromRequest, login } from "./auth";
 import { blogsGetAll } from "./blogs";
 import { displayLatestGithubCommit } from "./github/octokit";
+import { getCoverPhotos } from "./coverphotos";
+
+declare module "express-session" {
+  interface SessionData {
+    userId: string | null;
+  }
+}
 
 const app: Express = express();
 const port = env.PORT;
 
+app.use(
+  cors({
+    credentials: true,
+    origin: "http://localhost:5173",
+  })
+);
+
 app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // parse application/json
+
+app.use(
+  session({
+    secret: env.SECRET_KEY,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { httpOnly: true, secure: false, maxAge: 1000 * 60 * 60 * 24 },
+  })
+);
 
 // wrap async functions to catch errors
 const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
@@ -45,31 +72,37 @@ app.get("/error", (req: Request, res: Response) => {
 app.post(
   "/auth/login",
   asyncHandler(async (req: Request, res: Response) => {
-    // TODO: should we be passing this via the request body? or auth headers
     if (!req.body?.email || !req.body?.password)
       throw new HTTPError(400, "No email or password given");
     const { email, password } = req.body;
-    const token = await login({ email, password });
-    res.status(200).json({ token });
+    const id = await login({ email, password });
+    req.session.userId = id;
+    res.status(200).json({});
   })
 );
 
-app.post(
-  "/auth/logout",
-  asyncHandler(async (req: Request, res: Response) => {
-    const sessionToken = req.headers.authorization?.split(" ")[1];
-    if (!sessionToken) throw new HTTPError(401, "No token provided");
-    await logout({ sessionToken });
-    res.status(200).json({ message: "Logged out" });
-  })
-);
+app.post("/auth/logout", (req: Request, res: Response) => {
+  req.session.destroy((err) => {
+    if (err) throw new HTTPError(500, "Failed to destroy session");
+    else res.status(200).json({});
+  });
+});
 
 // blogs routes
 app.get(
   "/blogs",
   asyncHandler(async (req: Request, res: Response) => {
-    const blogs = await blogsGetAll();
+    const blogs = await blogsGetAll(await getUserFromRequest(req));
     res.status(200).json(blogs);
+  })
+);
+
+// coverphotos routes
+app.get(
+  "/coverphotos",
+  asyncHandler(async (req: Request, res: Response) => {
+    const coverPhotos = await getCoverPhotos(await getUserFromRequest(req));
+    res.status(200).json(coverPhotos);
   })
 );
 
