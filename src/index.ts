@@ -1,6 +1,9 @@
 import express, { Express, NextFunction, Request, Response } from "express";
 import bodyParser from "body-parser";
 
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
+
 import { env } from "./env";
 
 import { wrapHTML } from "./utils";
@@ -71,6 +74,8 @@ app.get(
 );
 
 app.use(globalErrorHandler);
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc(require("../swagger.json"))));
 
 app.listen(port, () => {
   console.log(`⚡️ server is running at http://localhost:${port}`);

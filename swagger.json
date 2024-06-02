@@ -1,0 +1,25 @@
+{
+  "definition": {
+    "openapi": "3.1.0",
+    "info": {
+      "title": "Elixir API",
+      "version": "0.1.0",
+      "description": "Backend for DataSoc's content.",
+      "license": {
+        "name": "MIT",
+        "url": "https://spdx.org/licenses/MIT.html"
+      },
+      "contact": {
+        "name": "UNSW DataSoc",
+        "url": "https://unswdata.com",
+        "email": "it@unswdata.com"
+      }
+    },
+    "servers": [
+      {
+        "url": "http://localhost:3000"
+      }
+    ]
+  },
+  "apis": ["./routes/*.js"]
+}
