@@ -18,8 +18,25 @@ export const getEventsAllController = asyncHandler(async (req: Request, res: Res
 // HELPERS
 async function eventsGetAll(user: User | null) {
   if (user && isModerator(user.role)) {
-    return await db.select().from(events);
+    return await db.query.events.findMany({
+      with: {
+        tags: {
+          with: {
+            tag: true,
+          },
+        },
+      },
+    });
   }
 
-  return await db.select().from(events).where(eq(events.public, true));
+  return await db.query.events.findMany({
+    with: {
+      tags: {
+        with: {
+          tag: true,
+        },
+      },
+    },
+    where: eq(events.public, true),
+  });
 }
