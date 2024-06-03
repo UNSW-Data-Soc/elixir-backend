@@ -1,4 +1,4 @@
-import { UserLevel, userLevels, userRoleGroups } from "../types";
+import { UserLevel, userLevels, userRoleGroups } from "../types/data";
 
 import { relations, sql } from "drizzle-orm";
 import { index, integer, primaryKey, sqliteTableCreator, text } from "drizzle-orm/sqlite-core";
