@@ -1,6 +1,7 @@
 import { Octokit } from "@octokit/core";
-import { env } from "../env";
 import dayjs from "dayjs";
+
+import { env } from "@/env";
 
 const octokit = new Octokit({
   auth: env.GITHUB_ACCESS_TOKEN,

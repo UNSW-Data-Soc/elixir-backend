@@ -1,4 +1,6 @@
-import express, { Express, NextFunction, Request, RequestHandler, Response } from "express";
+import "module-alias/register";
+
+import express, { Express, Request, Response } from "express";
 import bodyParser from "body-parser";
 
 import session from "express-session";
@@ -10,14 +12,16 @@ import swaggerUi from "swagger-ui-express";
 
 import { env } from "./env";
 
-import { wrapHTML } from "./utils";
+import { asyncHandler, wrapHTML } from "./lib/utils";
 import HTTPError, { globalErrorHandler } from "./error";
 
-import { getUserFromRequest, login } from "./auth";
-import { blogsGetAll } from "./blogs";
-import { displayLatestGithubCommit } from "./github/octokit";
-import { getCoverPhotos } from "./coverphotos";
+import { displayLatestGithubCommit } from "./services/github/octokit";
 
+import authRouter from "./routes/auth.routes";
+import blogsRouter from "./routes/blogs.routes";
+import coverPhotosRouter from "./routes/coverphotos.routes";
+
+// save userId in session
 declare module "express-session" {
   interface SessionData {
     userId: string | null;
@@ -37,6 +41,7 @@ app.use(
 app.use(bodyParser.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
 app.use(bodyParser.json()); // parse application/json
 
+// session middleware
 app.use(
   session({
     secret: env.SECRET_KEY,
@@ -46,68 +51,30 @@ app.use(
   })
 );
 
-// wrap async functions to catch errors
-const asyncHandler = (fn: RequestHandler) => (req: Request, res: Response, next: NextFunction) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
-
 // test routes
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (_: Request, res: Response) => {
   res.send("Hello, world!");
 });
-
 app.get(
   "/info",
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (_: Request, res: Response) => {
     const commitHTML = await displayLatestGithubCommit();
     res.send(wrapHTML(commitHTML));
   })
 );
-
-app.get("/error", (req: Request, res: Response) => {
+app.get("/error", () => {
   throw new HTTPError(400, "Bad request");
 });
 
-// auth routes
-app.post(
-  "/auth/login",
-  asyncHandler(async (req: Request, res: Response) => {
-    if (!req.body?.email || !req.body?.password)
-      throw new HTTPError(400, "No email or password given");
-    const { email, password } = req.body;
-    const id = await login({ email, password });
-    req.session.userId = id;
-    res.status(200).json({});
-  })
-);
+// routers
+app.use("/auth", authRouter);
+app.use("/blogs", blogsRouter);
+app.use("/coverphotos", coverPhotosRouter);
 
-app.post("/auth/logout", (req: Request, res: Response) => {
-  req.session.destroy((err) => {
-    if (err) throw new HTTPError(500, "Failed to destroy session");
-    else res.status(200).json({});
-  });
-});
-
-// blogs routes
-app.get(
-  "/blogs",
-  asyncHandler(async (req: Request, res: Response) => {
-    const blogs = await blogsGetAll(await getUserFromRequest(req));
-    res.status(200).json(blogs);
-  })
-);
-
-// coverphotos routes
-app.get(
-  "/coverphotos",
-  asyncHandler(async (req: Request, res: Response) => {
-    const coverPhotos = await getCoverPhotos(await getUserFromRequest(req));
-    res.status(200).json(coverPhotos);
-  })
-);
-
+// global error handler: catches HTTPErrors and all other errors
 app.use(globalErrorHandler);
 
+// swagger: API docs
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerJsdoc(require("../swagger.json"))));
 
 app.listen(port, () => {
