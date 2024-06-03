@@ -20,6 +20,7 @@ import { displayLatestGithubCommit } from "./services/github/octokit";
 import authRouter from "./routes/auth.routes";
 import blogsRouter from "./routes/blogs.routes";
 import coverPhotosRouter from "./routes/coverphotos.routes";
+import eventsRouter from "./routes/events.routes";
 
 // save userId in session
 declare module "express-session" {
@@ -70,6 +71,7 @@ app.get("/error", () => {
 app.use("/auth", authRouter);
 app.use("/blogs", blogsRouter);
 app.use("/coverphotos", coverPhotosRouter);
+app.use("/events", eventsRouter);
 
 // global error handler: catches HTTPErrors and all other errors
 app.use(globalErrorHandler);
