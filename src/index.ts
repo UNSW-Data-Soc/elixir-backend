@@ -1,4 +1,4 @@
-import express, { Express, NextFunction, Request, Response } from "express";
+import express, { Express, NextFunction, Request, RequestHandler, Response } from "express";
 import bodyParser from "body-parser";
 
 import session from "express-session";
@@ -30,7 +30,7 @@ const port = env.PORT;
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:5173",
+    origin: env.CORS_ORIGIN,
   })
 );
 
@@ -47,7 +47,7 @@ app.use(
 );
 
 // wrap async functions to catch errors
-const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
+const asyncHandler = (fn: RequestHandler) => (req: Request, res: Response, next: NextFunction) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
