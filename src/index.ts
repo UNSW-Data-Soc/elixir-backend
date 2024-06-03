@@ -24,6 +24,10 @@ import blogsRouter from "./routes/blogs.routes";
 import coverPhotosRouter from "./routes/coverphotos.routes";
 import eventsRouter from "./routes/events.routes";
 import companiesRouter from "./routes/companies.routes";
+import sponsorshipsRouter from "./routes/sponsorships.routes";
+import jobPostingsRouter from "./routes/jobPostings.routes";
+import resourcesRouter from "./routes/resources.routes";
+import usersRouter from "./routes/users.routes";
 
 // save userId in session
 declare module "express-session" {
@@ -76,6 +80,10 @@ app.use("/blogs", blogsRouter);
 app.use("/companies", companiesRouter);
 app.use("/coverphotos", coverPhotosRouter);
 app.use("/events", eventsRouter);
+app.use("/jobs", jobPostingsRouter);
+app.use("/resources", resourcesRouter);
+app.use("/sponsorships", sponsorshipsRouter);
+app.use("/users", usersRouter);
 
 // global error handler: catches HTTPErrors and all other errors
 app.use(globalErrorHandler);

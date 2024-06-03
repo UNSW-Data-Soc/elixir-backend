@@ -36,6 +36,10 @@ export const users = mysqlTable(
   })
 );
 
+export const userRelations = relations(users, ({ many }) => ({
+  yearsActive: many(userYearsActive),
+}));
+
 export const userYearsActive = mysqlTable(
   "userYearsActive",
   {
@@ -51,6 +55,10 @@ export const userYearsActive = mysqlTable(
     }),
   })
 );
+
+export const userYearsActiveRelations = relations(userYearsActive, ({ one }) => ({
+  user: one(users, { fields: [userYearsActive.userId], references: [users.id] }),
+}));
 
 export const resetTokens = mysqlTable(
   "resetTokens",
@@ -125,6 +133,11 @@ export const blogs = mysqlTable(
   })
 );
 
+export const blogsRelations = relations(blogs, ({ one, many }) => ({
+  creator: one(users, { fields: [blogs.creator], references: [users.id] }),
+  tags: many(blogTags),
+}));
+
 export const events = mysqlTable(
   "events",
   {
@@ -154,6 +167,11 @@ export const events = mysqlTable(
   })
 );
 
+export const eventsRelations = relations(events, ({ one, many }) => ({
+  creator: one(users, { fields: [events.creator], references: [users.id] }),
+  tags: many(eventTags),
+}));
+
 export const companies = mysqlTable(
   "companies",
   {
@@ -167,6 +185,11 @@ export const companies = mysqlTable(
     companyId: index("companyIdIdx").on(company.id),
   })
 );
+
+const companiesRelations = relations(companies, ({ many }) => ({
+  sponsorships: many(sponsorships),
+  jobPostings: many(jobPostings),
+}));
 
 export const sponsorships = mysqlTable(
   "sponsorships",
@@ -185,6 +208,10 @@ export const sponsorships = mysqlTable(
     sponsorshipId: index("sponsorshipIdIdx").on(sponsorship.id),
   })
 );
+
+export const sponsorshipsRelations = relations(sponsorships, ({ one }) => ({
+  company: one(companies, { fields: [sponsorships.company], references: [companies.id] }),
+}));
 
 export const jobPostings = mysqlTable(
   "jobPostings",
@@ -213,6 +240,10 @@ export const jobPostings = mysqlTable(
   (job) => ({})
 );
 
+export const jobPostingsRelations = relations(jobPostings, ({ one }) => ({
+  company: one(companies, { fields: [jobPostings.company], references: [companies.id] }),
+}));
+
 export const coverPhotos = mysqlTable(
   "coverphotos",
   {
@@ -239,11 +270,21 @@ export const resources = mysqlTable("resources", {
     .default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const resourcesRelations = relations(resources, ({ many }) => ({
+  tags: many(resourceTags),
+}));
+
 export const tags = mysqlTable("tags", {
   id: text("id", { length: 255 }).primaryKey(),
   name: text("name", { length: 255 }).notNull().unique(),
   colour: text("colour", { length: 7 }).notNull().default("#000000"),
 });
+
+export const tagsRelations = relations(tags, ({ many }) => ({
+  resources: many(resourceTags),
+  blogs: many(blogTags),
+  events: many(eventTags),
+}));
 
 export const resourceTags = mysqlTable(
   "resourceTags",
@@ -260,6 +301,11 @@ export const resourceTags = mysqlTable(
   })
 );
 
+export const resourceTagsRelations = relations(resourceTags, ({ one }) => ({
+  resource: one(resources, { fields: [resourceTags.resourceId], references: [resources.id] }),
+  tag: one(tags, { fields: [resourceTags.tagId], references: [tags.id] }),
+}));
+
 export const blogTags = mysqlTable(
   "blogTags",
   {
@@ -275,6 +321,11 @@ export const blogTags = mysqlTable(
   })
 );
 
+export const blogsTagsRelations = relations(blogTags, ({ one }) => ({
+  blog: one(blogs, { fields: [blogTags.blogId], references: [blogs.id] }),
+  tag: one(tags, { fields: [blogTags.tagId], references: [tags.id] }),
+}));
+
 export const eventTags = mysqlTable(
   "eventTags",
   {
@@ -289,3 +340,8 @@ export const eventTags = mysqlTable(
     compoundKey: primaryKey({ columns: [et.eventId, et.tagId] }),
   })
 );
+
+export const eventsTagsRelations = relations(eventTags, ({ one }) => ({
+  event: one(events, { fields: [eventTags.eventId], references: [events.id] }),
+  tag: one(tags, { fields: [eventTags.tagId], references: [tags.id] }),
+}));
