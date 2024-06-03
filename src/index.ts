@@ -1,4 +1,6 @@
-import "module-alias/register";
+// module aliases
+import moduleAlias from "module-alias";
+moduleAlias.addAlias("@", __dirname);
 
 import express, { Express, Request, Response } from "express";
 import bodyParser from "body-parser";
